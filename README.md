@@ -43,7 +43,7 @@ If you use this code in your work, please cite:
 ```bibtex
 @inproceedings{bujard2025relationships,
   title={Learning Relationships between Separate Audio Tracks for Creative Applications},
-  author={Bujard, [Your full author list]},
-  booktitle={Proceedings of the International Conference on Artificial Intelligence and Music Creativity (AIMC)},
+  author={Bujard Balthazar, Nika Jérôme, Obin Nicolas, Bevilacqua Frédéric},
+  booktitle={Proceedings of the 6th Conference on AI Music Creativity (AIMC 2025)},
   year={2025}
 }
