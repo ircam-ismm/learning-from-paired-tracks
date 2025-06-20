@@ -1,8 +1,49 @@
-This repository contains the code from the AIMC2025 paper "Learning Relationships betweenSeparate Audio Tracks for Creative Applications" (Bujard et al. 2025).
-All the code for reproducing results is available, except for the weights of the Wav2Vec2.0 pre-trained on music from "Learning music representations with wav2vec 2.0" (Ragano et al, 2023) which should be askedf to the authors of the paper.
-Since MICA dataset is proprietary data, only MoisesDB results can be reproduced.
+# Learning Relationships between Separate Audio Tracks for Creative Applications
 
-3 tutorial files are provided for an easy use of the code:
-1) train_model.py : used to train the decision module on one pair of tracks.
-2) use_decision.py : generates a symbolic specification from a trained Decision module given an audio track.
-3) generate_audio.py : given a guide track, a memory track and a trained model, this script generates audio in response of the guide track
+This repository contains the official codebase accompanying the AIMC2025 paper:
+
+**"Learning Relationships between Separate Audio Tracks for Creative Applications"**  
+*Bujard et al., 2025*
+
+---
+
+## Overview
+
+This project explores learning-based approaches to model relationships between separate audio tracks, enabling creative applications such as symbolic generation and guided audio synthesis.
+
+The repository includes all the code necessary to reproduce the results presented in the paper, **except** for:
+
+- The **pretrained Wav2Vec 2.0 model** trained on music, introduced in *Ragano et al., 2023*.  
+  → Please contact the authors of that paper directly to obtain access to the model weights.
+
+- The **MICA dataset**, which is proprietary and not publicly available.  
+  → As a result, only experiments using **MoisesDB** can be reproduced with the current repository.
+
+---
+
+## Tutorials
+
+To facilitate usage, three tutorial scripts are provided:
+
+1. **`train_model.py`**  
+   Train the Decision module on a pair of audio tracks.
+
+2. **`use_decision.py`**  
+   Generate a symbolic specification (e.g., structure or timing) from an audio input using a trained Decision module.
+
+3. **`generate_audio.py`**  
+   Given a *guide* track, a *memory* track, and a trained model, this script generates a response audio track conditioned on the guide.
+
+---
+
+## Citation
+
+If you use this code in your work, please cite:
+
+```bibtex
+@inproceedings{bujard2025relationships,
+  title={Learning Relationships between Separate Audio Tracks for Creative Applications},
+  author={Bujard, [Your full author list]},
+  booktitle={Proceedings of the International Conference on Artificial Intelligence and Music Creativity (AIMC)},
+  year={2025}
+}
