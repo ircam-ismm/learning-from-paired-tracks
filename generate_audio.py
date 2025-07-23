@@ -19,8 +19,9 @@ def parse_args():
                         help="Path(s) to guiding input audio file(s). Multiple files will automatically be mixed.")
     parser.add_argument("--model_ckp",type=Path,nargs="*", required=True,
                         help = "Path(s) to trained model(s) checkpoint(s).")
+    parser.add_argument("--VQpath",type=str,default=None,help="path to trained VQ from 'train_model.py' script.")
     parser.add_argument("--with_coupling",action='store_const', default=True, const=False, 
-                        help="De-activate coupling, do matching from input to output. TODO : change param name")
+                        help="De-activate coupling, do matching from input to output.") # TODO : change param name
     parser.add_argument("--k",type=float,default=0.8, help = "Top-K/P value. If k<1 use top-P, else top-K. Increasing k/p will add diversity to the output.")
     parser.add_argument("--temperature", type = float, default=1., help = "Temperature value. Increasing this parameter will flatten the probability distribution, increasing the diversity of predictions.")
     parser.add_argument("--force_coupling", action = 'store_true', 
@@ -34,7 +35,7 @@ def parse_args():
     parser.add_argument("--entropy_weight",type=float,default=0.)
     parser.add_argument("--k_percent_vocab",action="store_true")
     parser.add_argument('--fade_time',type=float,default=0.05)
-    parser.add_argument("--sliding", action = "store_const", default=True, const=False)
+    parser.add_argument("--sliding", action = "store_const", default=True, const=False) #TODO:change param name
     parser.add_argument("--num_examples",type=int, default=1)
     parser.add_argument("--smaller",action='store_true')
     parser.add_argument("--max_duration",type=float, default=None)
@@ -64,7 +65,7 @@ if __name__=='__main__':
         save_dir = save_dir.joinpath(model_ckp.name) #os.path.join(save_dir,os.path.basename(model_ckp).split(".pt")[0]) 
         os.makedirs(save_dir,exist_ok=True)
         
-        model, params, _ = load_model_checkpoint(model_ckp)
+        model, params, _ = load_model_checkpoint(model_ckp,vq_ckp=args.VQpath)
         model.eval()
         _=model.to(DEVICE) 
 
@@ -95,6 +96,6 @@ if __name__=='__main__':
                         mix_channels=args.mix_channels, 
                         entropy_weight=args.entropy_weight,
                         save_concat_args=args.save_concat_args,
-                        easy_name = args.easy_name)
+                        )
             
         
