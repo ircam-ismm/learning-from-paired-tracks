@@ -11,6 +11,7 @@ import os
 from trainer import Seq2SeqTrainer
 import torch
 from argparse import ArgumentParser
+import copy
 
 
 DEVICE = lock_gpu()[0][0]
@@ -120,15 +121,15 @@ def build_model(args):
     
     chunk_duration = args.chunk_duration #[sec] #equivalent to resolution for decision input
     track_duration = 15.0 #args.track_duration #(30/0.5)*MAX_CHUNK_DURATION #[sec] comme ca on a tojours des sequences de 60 tokens dans decision #[sec]
-    segmentation= args.segmentation
+    #segmentation= args.segmentation
     
 
     #POS ENCODING
     #div_term = MAX_CHUNK_DURATION if SEGMENTATION_STRATEGY in ['uniform','sliding'] else MIN_RESOLUTION
-    max_len = int(math.ceil(track_duration/chunk_duration)+1 + 10) #max len is the max number of chunks + some overhead #max(200,int(math.ceil(MAX_TRACK_DURATION/div_term)+1 + 3)) #gives the max number of chunks per (sub-)track +1 cuz of padding of last track chunk +3 for special tokens
+    max_len = int(math.ceil(track_duration/chunk_duration)+1 + 10) #max len is the max number of chunks + some overhead 
     
-    encoder_head=args.encoder_head #COLLAPSE method
-    condense_type=args.condense_type if encoder_head!='mean' else None
+    encoder_head="mean" #COLLAPSE method
+    condense_type=None #used if encoder head is attention
 
     use_special_tokens=True 
 
@@ -164,23 +165,19 @@ def build_model(args):
                                     decoder_only=decoder_only,
                                     inner_dim=inner_dim,
                                     heads=heads,
-                                    special_vq=args.special_vq,
                                     chunk_size=chunk_duration,
-                                    data = args.data,
-                                    VQpath = VQpath,
-                                    relative_pe=args.relative_pe
+                                    special_vq=False,
+                                    VQpath = VQpath
                                     )
     return seq2seq
 
-def build_trainer(model, args):
+def build_trainer(model:torch.nn.Module, args):
     lr = args.learning_rate
-    lr_bb = lr if args.learning_rate_backbone == -1 else args.learning_rate_backbone
+    #lr_bb = lr if args.learning_rate_backbone == -1 else args.learning_rate_backbone
     weight_decay= args.weight_decay 
     betas=(0.9, 0.999) #default betas for Adam
     
-    k = args.k
-    if k>=1:
-        k=int(k)
+    k = 1 #for training top-k is set to 1
         
     
     criterion = torch.nn.functional.cross_entropy #torch.nn.CrossEntropyLoss(ignore_index=PAD_IDX)
@@ -198,13 +195,12 @@ def build_trainer(model, args):
     run_id=new_run_id
     
     trainer = Seq2SeqTrainer(model,0, criterion, optimizer, run_id,
-                            segmentation=args.segmentation,
+                            segmentation="uniform",
                             k = k,
                             chunk_size=args.chunk_duration, #PROBLEME VIENT D'ICI ON UTILISE CHUNK SIZE DANS TRAINER ET CA ECRASE LA VALEUR AU PROCHAIN CKP
-                            track_size=args.track_duration,
+                            track_size=15.,
                             scheduled_sampling = args.scheduled_sampling,
-                            scheduler_alpha=args.scheduler_alpha,
-                            seq_nll_loss=args.seq_nll_loss)
+                            scheduler_alpha=args.scheduler_alpha)
     
     return trainer
 
@@ -213,6 +209,12 @@ def argparser():
     
     parser.add_argument("--track1", type = str, help = "Path to the input (guide) audio file") #str type because Dataset class still needs update to enable Path type...
     parser.add_argument("--track2", type = str, help = "Path to the output (target) audio file")
+    parser.add_argument("--vocab_size", type=int, choices=[16,32,64,128,256,512,1024], help="Codebook size")
+    parser.add_argument('-layers','--transformer_layers',type=int,default=6)
+    parser.add_argument('--inner_dim',type=int,default=2048)
+    parser.add_argument('--heads',type=int,default=12)
+    parser.add_argument('--dropout',type=float,default=0.1)
+    parser.add_argument("--chunk_duration", type=float, default=0.5, help="Duration in seconds of the audio segments.")
     parser.add_argument("--batch_size", type = int, default=None, help = "batch size : default None. If not specified batch size is computed as to have a batch = the whole track")
     parser.add_argument("--pre_segmentation", type=str, default = "sliding", choices = ["sliding", "uniform"])
     parser.add_argument('-lr','--learning_rate',type=float,default=1e-5)
@@ -225,7 +227,7 @@ def argparser():
 
 def main(args):
     
-    tracks = ... #get list of tracks from args
+    tracks = [args.track1, args.track2] #get list of tracks from args
     #train VQ on input tracks
     trainVQ(args.vocab_size, args.chunk_duration, tracks)
     
@@ -235,12 +237,12 @@ def main(args):
     #build dataset from input tracks
     #source and output tracks are given as separate arguments.
     #each can be a list of several tracks ? -> if multiple tracks are given, coupled tracks should share the same name
-    fetcher = build_coupling_ds([args.track1, args.track2],args.batch_size, args.track_duration, args.chunk_duration,distributed=False)
-    
+    fetcher = build_coupling_ds([tracks],args.batch_size, 15., args.chunk_duration,pre_segmentation=args.pre_segmentation, distributed=False, device=DEVICE)
+    eval_fetcher = copy.deepcopy(fetcher)
     #build trainer
     trainer = build_trainer(model,args)
     #launch training
-    trainer.train(fetcher,fetcher,args.epochs,reg_alpha=0) 
+    trainer.train(fetcher,eval_fetcher,args.epochs,reg_alpha=0) 
 
 if __name__=='__main__':
     args = argparser().parse_args()
