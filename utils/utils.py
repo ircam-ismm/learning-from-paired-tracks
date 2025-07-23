@@ -324,6 +324,10 @@ def build_coupling_ds(roots : List[List[Path]],
         sampler=DistributedSampler(ds)
         shuffle=False
     
+    if batch_size == None:
+        batch_size = len(ds) #batch size is all the track chunks
+    
+    
     loader = DataLoader(ds, batch_size, shuffle=shuffle,sampler=sampler, #with distributed shuffle = false
                         collate_fn=collate_fn,num_workers=2,pin_memory=True)
 
