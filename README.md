@@ -27,13 +27,13 @@ The repository includes all the code necessary to reproduce the results presente
 
 To facilitate usage, three tutorial scripts are provided:
 
-1. **`train_model.py`**  TODO : finish testing and debugging
+1. **`train_model.py`**
    Train the Decision module on a pair of audio tracks.
 
 2. **`use_decision.py`**  TODO : create script
    Generate a symbolic specification (e.g., structure or timing) from an audio input using a trained Decision module.
 
-3. **`generate_audio.py`**  TODO : finish testing and debugging
+3. **`generate_audio.py`**
    Given a *guide* track, a *memory* track, and a trained model, this script generates a response audio track conditioned on the guide.
 
 ---
