@@ -30,7 +30,7 @@ To facilitate usage, three tutorial scripts are provided:
 1. **`train_model.py`**
    Train the Decision module on a pair of audio tracks.
 
-2. **`use_decision.py`**  TODO : create script
+2. **`use_decision.py`**
    Generate a symbolic specification (e.g., structure or timing) from an audio input using a trained Decision module.
 
 3. **`generate_audio.py`**
