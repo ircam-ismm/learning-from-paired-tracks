@@ -1,3 +1,7 @@
+"""
+This scripts present the tutorial on how a trained Decision module can be used to generate a symbolic specification given an audio input.
+The audio input is encoded by the Perception module, and the trained Decision module predicts the sequence of tokens to be used by the Action module to generate audio with concatenative synthesis.
+"""
 from MusicDataset import MusicContainer4dicy2
 from utils.dicy2_generator import generate_memory_corpus, generate_response
 from architecture.Model import load_model_checkpoint
@@ -36,7 +40,7 @@ def parse_args():
     return args
 
 def main(args):
-    sampling_rate = 16000
+    sampling_rate = 16000 #wav2vec2.0 sampling rate
     
     model, params, _ = load_model_checkpoint(args.model_ckp, vq_ckp=args.VQpath)
     model.eval()
