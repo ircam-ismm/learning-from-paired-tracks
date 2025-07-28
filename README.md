@@ -1,5 +1,7 @@
 # Learning Relationships between Separate Audio Tracks for Creative Applications
 
+This project explores learning-based approaches to model relationships between separate audio tracks, enabling creative applications such as symbolic generation and guided audio synthesis.
+
 This repository contains the official codebase accompanying the AIMC2025 paper:
 
 **"Learning Relationships between Separate Audio Tracks for Creative Applications"**  
@@ -11,7 +13,11 @@ Audio examples can be found at https://ircam-ismm.github.io/MoisesDB-audio-examp
 
 ## Overview
 
-This project explores learning-based approaches to model relationships between separate audio tracks, enabling creative applications such as symbolic generation and guided audio synthesis.
+This repository contains:
+- MusicDataset : The dataset structures for loading, pre-processing and batching audio.
+- architecture : The pytorch Module classes for the Perception (aka Encoder), Decision and Seq2Seq (for auto-completion and coupling tasks) modules.
+- utils : a utilitarity folder conatining dataset folder generation scripts, metrics for evaluation, and most important the dicy2_generator.py script containing all functions relevant to the Action module and exploitation of trained Decision module (generating symbolic specifications, converting symbolic specifications into audio).
+- training, evaluation, quantization scripts.
 
 The repository includes all the code necessary to reproduce the results presented in the paper, **except** for:
 
