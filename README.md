@@ -46,7 +46,7 @@ To facilitate usage, three tutorial scripts are provided:
 ## Installation
 - python 3.10
 - install requirements with "pip install -r requirements.txt"
-- install Dicy2-python library from "https://github.com/DYCI2/Dicy2-python" and place it outside this folder, i.e. ../Dicy2-python.
+- Follow instructions to install Dicy2-python library from "https://github.com/DYCI2/Dicy2-python" and place it outside this folder, i.e. ../Dicy2-python.
 ---
 
 ## Citation
