@@ -826,7 +826,7 @@ class MusicCouplingDatasetv2(Dataset):
             mix_chunks = np.mean([[chunks for chunks in self.containers[i][chunk_idx][0]] for i in other_idx],axis=0) #combine chunks : (N,samples)
             #mix_chunks = [np.interp(chunk,(chunk.min(),chunk.max()),(-1,1)) for chunk in mix_chunks]
         
-
+        #IF 'other' IS ONLY ONE TRACK, THEN THERE IS NO PROBLEM. OTHERWISE SEGMENTATION HAS TE BE DONE ON WHOLE MIX
         else :
             #if onset segmentation need to redo segmentation on whole mix... : find way to do this only once !!!!
             #not best solution but could do the getitem method, concat each track chunks, sum and the resegment... 
@@ -842,8 +842,8 @@ class MusicCouplingDatasetv2(Dataset):
                     track = np.concatenate([track,np.zeros(pad)])
                 mix.append(track)
             
-            mix = np.mean(mix,axis=0)
-            #mix = np.interp(mix,(mix.min(),mix.max()),(-1,1))
+            mix = np.sum(mix,axis=0)
+            mix = np.interp(mix,(mix.min(),mix.max()),(-1,1))
             mix_chunks = self.containers[0].segment_track(mix, 'onset')
                 
         

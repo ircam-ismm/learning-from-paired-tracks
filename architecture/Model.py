@@ -22,7 +22,7 @@ class myDDP(DDP):
 #script to build different models and load checkpopints
 
 #TODO : NOW THE SEQ2SEQ BUILDER CAN TAKE **KWARGS FROM DICT
-def load_model_checkpoint(ckp_path:Path, backbone_checkpoint="/data3/anasynth_nonbp/bujard/w2v_music_checkpoint.pt") -> Tuple[Union[Seq2SeqBase,Seq2SeqCoupling], dict, dict] :
+def load_model_checkpoint(ckp_path:Path, backbone_checkpoint="/data3/anasynth_nonbp/bujard/w2v_music_checkpoint.pt",vq_ckp:str=None) -> Tuple[Union[Seq2SeqBase,Seq2SeqCoupling], dict, dict] :
     """
     Function to load pre-trained checkpoint of Seq2Seq/Seq2SeqCoupling
 
@@ -84,7 +84,7 @@ def load_model_checkpoint(ckp_path:Path, backbone_checkpoint="/data3/anasynth_no
     model = SimpleSeq2SeqModel(backbone_checkpoint,bb_type,dim,vocab_size,max_len,encoder_head,use_special_tokens,chunking=chunking,
                                    condense_type=condense_type,has_masking=has_masking,task=task,
                                    transformer_layers=transformer_layers,decoder_only=decoder_only, relative_pe=relative_pe,inner_dim=inner_dim,heads=heads,dropout=dropout,
-                                   special_vq=special_vq,chunk_size = model_params["chunk_size"], data = data)
+                                   special_vq=special_vq,chunk_size = model_params["chunk_size"], data = data,VQpath=vq_ckp)
     
     #else : raise ValueError(f"the model class from the checkpoint is invalid. Should be an instance (or subclass) of 'Seq2SeqBase' but got {model_class}")
     

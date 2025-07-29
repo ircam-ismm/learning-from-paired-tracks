@@ -1,0 +1,21 @@
+audioread==3.0.1
+einops==0.8.1
+fadtk==1.1.0
+fairseq==0.12.2
+ipython==8.12.3
+librosa==0.10.1
+matplotlib==3.10.3
+munch==4.0.0
+numpy==1.23.5
+optuna==3.6.1
+scikit_learn==1.4.1
+scipy==1.16.1
+soundfile==0.12.1
+torch==2.1.2
+torchaudio==2.1.2
+torcheval==0.0.7
+tqdm==4.66.2
+transformers==4.48.1
+umap_learn==0.5.5
+beam-search-BB #custom beam search package
+concatenate-BB #custom concatenative synthesis package

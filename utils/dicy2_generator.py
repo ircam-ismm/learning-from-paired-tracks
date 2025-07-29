@@ -14,7 +14,7 @@ from concatenate import Concatenator, TimeStamp #custom library for concatenatin
 import time
 from pathlib import Path
 #for dicy2 library
-sys.path.insert(0,"/data3/anasynth_nonbp/bujard/Dicy2-python")
+sys.path.insert(0,"../Dicy2-python")
 
 from MusicDataset.MusicDataset_v2 import MusicContainer4dicy2,Fetcher,MusicDataCollator
 from torch.utils.data import DataLoader

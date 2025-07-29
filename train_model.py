@@ -1,7 +1,3 @@
-"""
-This scripts present a tutorial on how to train a seq2seq model for learning symbolic realtionships between separate tracks.
-Once this script is run on your specific pair(s) of tracks, a .pt file is saved for later use for audio (generate_audio.py) or symbolic specification (use_decision.py) generation.
-"""
 from architecture import SimpleSeq2SeqModel, build_backbone
 import math
 import numpy as np
@@ -20,9 +16,11 @@ import copy
 
 DEVICE = lock_gpu()[0][0]
 
-#this fucntion takes as arguments the codebook_size, the unifomr segmentationn duration and list of audio files to compute the VQ
 def trainVQ(codebook_size : int, chunk_duration : float, tracks : List[str]):
+    #fonction reçoit taille du codebook, le chunk size et la liste des pistes utilisées pour l'entrainement du moodèle
     
+    #codebook_size=16
+
     dim=768
     output_final_proj = False
 
@@ -102,27 +100,31 @@ def trainVQ(codebook_size : int, chunk_duration : float, tracks : List[str]):
         np.save(f"myVQ/kmeans_centers_{codebook_size}_{chunk_duration}s.npy",centers,allow_pickle=True)
         if end:
             break
-#this function builds the model from the arguments given through CLI
+
 def build_model(args):
     
     #BACKBONE
-    pretrained_bb_checkpoint = "../w2v_music_checkpoint.pt" #path to Wav2Vec2.0 pre-trained on music data (see Ragano et al. 2022)
+    pretrained_bb_checkpoint = "../w2v_music_checkpoint.pt"
     bb_type="w2v"
-    dim=768 
-    pre_post_chunking = "post" 
-    freeze_backbone= True 
+    dim=768 #args.dim
+    pre_post_chunking = "post" #args.pre_post_chunking
+    freeze_backbone= True #args.freeze_backbone 
 
     vocab_size = args.vocab_size
 
     #VQ
-    learnable_codebook= False 
-    restart_codebook= False 
+    #dim=768  #quantizer output dimension. if different than backbone dim must be learnable codebook (becomes an nn.Embedding layer to be learned)
+    learnable_codebook= False #args.learnable_cb#args.learnable_cb #if the codebooks should get closer to the unquantized inputs
+    restart_codebook= False #args.restart_codebook #update dead codevectors
+    #if restart_codebook and not learnable_codebook: prRed("restart codebook without learnable codebook") 
     
     chunk_duration = args.chunk_duration #[sec] #equivalent to resolution for decision input
-    track_duration = 15.0 
+    track_duration = 15.0 #args.track_duration #(30/0.5)*MAX_CHUNK_DURATION #[sec] comme ca on a tojours des sequences de 60 tokens dans decision #[sec]
+    #segmentation= args.segmentation
     
 
     #POS ENCODING
+    #div_term = MAX_CHUNK_DURATION if SEGMENTATION_STRATEGY in ['uniform','sliding'] else MIN_RESOLUTION
     max_len = int(math.ceil(track_duration/chunk_duration)+1 + 10) #max len is the max number of chunks + some overhead 
     
     encoder_head="mean" #COLLAPSE method
@@ -130,20 +132,19 @@ def build_model(args):
 
     use_special_tokens=True 
 
-    task = "coupling" #this script presents the coupling task which is presented in the AIMC2025 paper
+    task = "coupling" #args.task
 
     #DECISION
     transformer_layers = args.transformer_layers
-    decoder_only=True 
+    decoder_only=True #args.decoder_only 
     inner_dim=args.inner_dim
     heads=args.heads
     dropout = args.dropout
     
-    has_masking = False 
+    has_masking = False #args.has_masking
     
-    VQpath = f"myVQ/kmeans_centers_{vocab_size}_{chunk_duration}s.npy" #path to the trained VQ
+    VQpath = f"myVQ/kmeans_centers_{vocab_size}_{chunk_duration}s.npy"
 
-    #build the seq2seq model for coupling
     seq2seq=SimpleSeq2SeqModel(pretrained_bb_checkpoint,
                                     bb_type,
                                     dim,
@@ -169,16 +170,16 @@ def build_model(args):
                                     )
     return seq2seq
 
-#function to build the seq2seq trainer
 def build_trainer(model:torch.nn.Module, args):
     lr = args.learning_rate
+    #lr_bb = lr if args.learning_rate_backbone == -1 else args.learning_rate_backbone
     weight_decay= args.weight_decay 
     betas=(0.9, 0.999) #default betas for Adam
     
     k = 1 #for training top-k is set to 1
         
     
-    criterion = torch.nn.functional.cross_entropy 
+    criterion = torch.nn.functional.cross_entropy #torch.nn.CrossEntropyLoss(ignore_index=PAD_IDX)
     
     model = model.to(DEVICE)
     
@@ -205,8 +206,8 @@ def build_trainer(model:torch.nn.Module, args):
 def argparser():
     parser = ArgumentParser()
     
-    parser.add_argument("--track1", type = str, help = "Path to the input (guide) audio file") #str type because Dataset class still needs update to enable Path type...
-    parser.add_argument("--track2", type = str, help = "Path to the output (target) audio file")
+    parser.add_argument("--track1", type = str, help = "Path to the input (guide) audio file or folder") #str type because Dataset class still needs update to enable Path type...
+    parser.add_argument("--track2", type = str, help = "Path to the output (target) audio file or folder")
     parser.add_argument("--vocab_size", type=int, choices=[16,32,64,128,256,512,1024], help="Codebook size")
     parser.add_argument('-layers','--transformer_layers',type=int,default=6)
     parser.add_argument('--inner_dim',type=int,default=2048)

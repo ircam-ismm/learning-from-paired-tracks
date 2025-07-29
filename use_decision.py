@@ -1,7 +1,3 @@
-"""
-This scripts present the tutorial on how a trained Decision module can be used to generate a symbolic specification given an audio input.
-The audio input is encoded by the Perception module, and the trained Decision module predicts the sequence of tokens to be used by the Action module to generate audio with concatenative synthesis.
-"""
 from MusicDataset import MusicContainer4dicy2
 from utils.dicy2_generator import generate_memory_corpus, generate_response
 from architecture.Model import load_model_checkpoint
@@ -20,7 +16,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--memory', type=Path, help = "Path to 'memory' audio file.")
     parser.add_argument('--source', type=Path,nargs="*", help="Path(s) to guiding input audio file(s). Multiple files will automatically be mixed.")
-    parser.add_argument("--model_ckp",type=Path, help = "Path to trained model checkpoint.")
+    parser.add_argument("--model_ckp",type=Path, help = "Path to trained model checkpoint. If you choose one of your ptrained models from 'train_model.py', specify the path to the trained VQ on your specific data.")
     parser.add_argument("--VQpath",type=str,default=None,help="path to trained VQ from 'train_model.py' script.")
     parser.add_argument("--with_coupling",action='store_const', default=True, const=False, 
                         help="De-activate coupling, do matching from input to output.") #TODO : change param name
@@ -40,7 +36,7 @@ def parse_args():
     return args
 
 def main(args):
-    sampling_rate = 16000 #wav2vec2.0 sampling rate
+    sampling_rate = 16000
     
     model, params, _ = load_model_checkpoint(args.model_ckp, vq_ckp=args.VQpath)
     model.eval()
