@@ -34,7 +34,7 @@ def load_model_checkpoint(ckp_path:Path, backbone_checkpoint="../w2v_music_check
         Tuple[Union[Seq2SeqBase,Seq2SeqCoupling], dict, dict]: Returns the pretrained module, its parameters dict and optimizers dict
     """
     
-    ckp = torch.load(ckp_path, map_location=torch.device("cpu"))
+    ckp = torch.load(ckp_path, map_location=torch.device("cpu"), weights_only=False)
     model_class = ckp["model_class"]
     state_dict = ckp["state_dict"]
     model_params = ckp["model_params"]
