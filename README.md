@@ -46,8 +46,10 @@ To facilitate usage, three tutorial scripts are provided:
 ## Installation
 - python==3.10 && pip==24.0
 - install requirements with "python -m pip install -r requirements.txt"
-- Follow instructions to install Dicy2-python library from "https://github.com/DYCI2/Dicy2-python" and place it in the root folder
-- "python -m pip install -e ."
+- Follow instructions to install Dicy2-python library from "https://github.com/DYCI2/Dicy2-python" and place it in the root folder of this project. Then, do "python -m pip install -e /dicy2_wrapper".
+- Finally, do "python -m pip install -e ."
+
+Now all code in /src and /Dicy2-python are available to run the tutorial and developpement scripts.
 ---
 
 ## Citation
