@@ -48,7 +48,8 @@ To facilitate usage, three tutorial scripts are provided:
 - install requirements with "python -m pip install -r requirements.txt"
 - Follow instructions to install Dicy2-python library from "https://github.com/DYCI2/Dicy2-python" and place it in the root folder of this project. Then, do "python -m pip install -e /dicy2_wrapper".
 - Finally, do "python -m pip install -e ."
-
+- You'll need a wav2vec2.0 checkpoint, contact Dr. Ragano for the Wav2Vec2.0 pre-trained on music otherwise you can still use a publicly available checkpoint but no result is guaranteed.
+- place the checkpoint (*.pt) outside this directory.
   Now all code in /src and /Dicy2-python are available to run the tutorial and developpement scripts.
 ---
 
