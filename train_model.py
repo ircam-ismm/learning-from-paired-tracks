@@ -1,14 +1,14 @@
-from architecture import SimpleSeq2SeqModel, build_backbone
+from src.architecture import SimpleSeq2SeqModel, build_backbone
 import math
 import numpy as np
 from typing import List
-from utils.utils import lock_gpu, prYellow, build_coupling_ds
-from MusicDataset import MusicContainerPostChunk, MusicDataCollator, Fetcher
+from src.utils.utils import lock_gpu, prYellow, build_coupling_ds
+from src.MusicDataset import MusicContainerPostChunk, MusicDataCollator, Fetcher
 from torch.utils.data import DataLoader
 from sklearn.cluster import MiniBatchKMeans
 from tqdm import tqdm
 import os
-from trainer import Seq2SeqTrainer
+from src.trainer import Seq2SeqTrainer
 import torch
 from argparse import ArgumentParser
 import copy
@@ -245,4 +245,7 @@ def main(args):
 
 if __name__=='__main__':
     args = argparser().parse_args()
+    #create folders
+    os.makedirs("myVQ/", exist_ok=True) #create folder
+    os.makedirs("runs/coupling",exist_ok=True)
     main(args)

@@ -7,7 +7,7 @@ from torch.optim import Optimizer
 from MusicDataset.MusicDataset_v2 import Fetcher
 from typing import Callable, Tuple
 from tqdm import tqdm
-from architecture.Seq2Seq import Seq2SeqCoupling,Seq2SeqBase
+from src.architecture.Seq2Seq import Seq2SeqCoupling,Seq2SeqBase
 from architecture.Model import load_model_checkpoint,myDDP
 from abc import ABC, abstractmethod
 from utils.utils import *

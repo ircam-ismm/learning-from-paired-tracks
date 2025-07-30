@@ -22,13 +22,13 @@ class myDDP(DDP):
 #script to build different models and load checkpopints
 
 #TODO : NOW THE SEQ2SEQ BUILDER CAN TAKE **KWARGS FROM DICT
-def load_model_checkpoint(ckp_path:Path, backbone_checkpoint="/data3/anasynth_nonbp/bujard/w2v_music_checkpoint.pt",vq_ckp:str=None) -> Tuple[Union[Seq2SeqBase,Seq2SeqCoupling], dict, dict] :
+def load_model_checkpoint(ckp_path:Path, backbone_checkpoint="../w2v_music_checkpoint.pt",vq_ckp:str=None) -> Tuple[Union[Seq2SeqBase,Seq2SeqCoupling], dict, dict] :
     """
     Function to load pre-trained checkpoint of Seq2Seq/Seq2SeqCoupling
 
     Args:
         ckp_path (Path): Path to checkpoint
-        backbone_checkpoint (str, optional): The pretrained encoder checkpoint. Defaults to "/data3/anasynth_nonbp/bujard/w2v_music_checkpoint.pt" for the Wav2Vec 2.0 pre-trained on music.
+        backbone_checkpoint (str, optional): The pretrained encoder checkpoint. Defaults to "w2v_music_checkpoint.pt" for the Wav2Vec 2.0 pre-trained on music.
 
     Returns:
         Tuple[Union[Seq2SeqBase,Seq2SeqCoupling], dict, dict]: Returns the pretrained module, its parameters dict and optimizers dict
