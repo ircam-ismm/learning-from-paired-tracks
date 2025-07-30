@@ -1,6 +1,6 @@
 from architecture.Model import load_model_checkpoint
 from architecture.Seq2Seq import Seq2SeqBase,Seq2SeqCoupling
-from utils.utils import lock_gpu, prGreen, prRed, prYellow, detect_onsets, find_non_empty, compute_consecutive_lengths
+from utils.utils import lock_gpu, prRed, prYellow, find_non_empty, compute_consecutive_lengths
 from .metrics import compute_accuracy as compute_acc
 import torch
 import numpy as np
@@ -13,9 +13,6 @@ from munch import Munch
 from concatenate import Concatenator, TimeStamp #custom library for concatenating audio chunks from time markers
 import time
 from pathlib import Path
-#for dicy2 library
-sys.path.insert(0,"../Dicy2-python")
-
 from MusicDataset.MusicDataset_v2 import MusicContainer4dicy2,Fetcher,MusicDataCollator
 from torch.utils.data import DataLoader
 
