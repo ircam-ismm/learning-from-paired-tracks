@@ -7,7 +7,7 @@ This repository contains the official codebase accompanying the AIMC2025 paper:
 **"Learning Relationships between Separate Audio Tracks for Creative Applications"**  
 *Bujard et al., 2025*
 
-Audio examples can be found at https://ircam-ismm.github.io/MoisesDB-audio-examples/
+Audio examples can be found at https://ircam-ismm.github.io/learning-from-paired-tracks_support-material/
 
 ---
 
