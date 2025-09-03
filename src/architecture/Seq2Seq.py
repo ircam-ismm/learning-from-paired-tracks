@@ -300,13 +300,17 @@ class Seq2SeqBase(nn.Module):
         
         while tgt.size(1)<max_len:
             
-            tgt_pe = self.pe(tgt) #apply pos encoding (B,T,dim)
+            #tgt_pe = self.pe(tgt) #apply pos encoding (B,T,dim)
             
             #create tgt mask
-            tgt_mask = self._create_causal_mask(tgt_pe.size(1))
+            #tgt_mask = self._create_causal_mask(tgt_pe.size(1))
+            tgt_mask = self._create_causal_mask(tgt_idx.size(1))
             
             #predict logits
-            logits = self.decision.decode(tgt_pe,memory,tgt_mask,
+            # logits = self.decision.decode(tgt_pe,memory,tgt_mask,
+            #                               tgt_pad_mask=tgt_pad_mask,
+            #                               memory_pad_mask=memory_pad_mask)[:,-1:,:] #(B,1,vocab_size) only take last step
+            logits = self.decision.decode(tgt_idx,memory,tgt_mask,
                                           tgt_pad_mask=tgt_pad_mask,
                                           memory_pad_mask=memory_pad_mask)[:,-1:,:] #(B,1,vocab_size) only take last step
                         
@@ -628,7 +632,7 @@ class Seq2SeqCoupling(Seq2SeqBase):
         src = encoded_src
         
         #apply position to src
-        src = self.pe.forward(src)
+        #src = self.pe.forward(src) #PE done in Decision
         
         memory = self.decision.encode(src,src_mask=None,src_pad_mask=src_pad_mask) #encode src once -> pass through Transformer encoder if enc-dec else will be = src
         
@@ -646,7 +650,10 @@ class Seq2SeqCoupling(Seq2SeqBase):
         
         if not max_len : max_len = encoded_src.size(1) #maximum generated sequence size is equal to size of input sequence
         
-        tgt, tgt_idx, probs = self.coupling(encoded_src, src_pad_mask, k, max_len, decoding_type, temperature, gt_set, entropy_weight) #generate sequence of expected labels for coupling
+        #tgt, tgt_idx, probs = self.coupling(encoded_src, src_pad_mask, k, max_len, decoding_type, temperature, gt_set, entropy_weight) #generate sequence of expected labels for coupling
+        #give src_idx as argument to projecxt to embedding space
+        
+        tgt, tgt_idx, probs = self.coupling(src_idx, src_pad_mask, k, max_len, decoding_type, temperature, gt_set, entropy_weight) #generate sequence of expected labels for coupling
         
         return tgt, tgt_idx, probs #tgt probably not used but not bad idea    
         

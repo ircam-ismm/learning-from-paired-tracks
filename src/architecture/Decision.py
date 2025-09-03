@@ -84,7 +84,7 @@ class Decision(nn.Module):
         
         return out
 
-    #TODO : project to embedding layer for encode() and decode()
+    
     def encode(self,src,src_mask=None,src_pad_mask=None):
         src = self.embedding(src)
         src = self.pe(src)

@@ -80,6 +80,9 @@ if __name__=="__main__":
     args = parse_args()
     memory_labels, output_labels = main(args)
     
+    print("Memory labels =", memory_labels)
+    print("Generated symbolic specification =", output_labels)
+    
     save_dir = Path("output") if args.save_dir==None else args.save_dir
     save_dir = save_dir.joinpath(args.model_ckp.name).joinpath("use_decision")
     os.makedirs(save_dir,exist_ok=True)

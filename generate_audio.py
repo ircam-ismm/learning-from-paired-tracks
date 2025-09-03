@@ -57,7 +57,7 @@ if __name__=='__main__':
         print("Generating with model :",model_ckp.name)
         
         save_dir = Path("output") if args.save_dir==None else args.save_dir
-        save_dir = save_dir.joinpath(model_ckp.name) #os.path.join(save_dir,os.path.basename(model_ckp).split(".pt")[0]) 
+        save_dir = save_dir.joinpath(model_ckp.name[:-3]) #os.path.join(save_dir,os.path.basename(model_ckp).split(".pt")[0]) 
         os.makedirs(save_dir,exist_ok=True)
         
         model, params, _ = load_model_checkpoint(model_ckp,vq_ckp=args.VQpath)
