@@ -594,8 +594,8 @@ class Seq2SeqCoupling(Seq2SeqBase):
         tgt_idx = tgt_idx.detach()
         
         #rename to src and tgt
-        src = z_src
-        tgt = z_tgt
+        src = src_idx #z_src
+        tgt = tgt_idx #z_tgt
         
         #the seq2seq transformer predicts every next step so we remove last timestep for it to be predicted (all timesteps are predicted sequentially)
         tgt_input = tgt[:,:-1] 

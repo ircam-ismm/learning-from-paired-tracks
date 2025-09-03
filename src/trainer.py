@@ -387,7 +387,7 @@ class Seq2SeqTrainer(nn.Module):
         
         params = self.model.parameters() if not isinstance(self.model,DDP) else self.model.module.parameters()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(params,1.0)
+        torch.nn.utils.clip_grad_norm_(params,.25)
         if step%self.grad_accum_steps == 0 or step == len(train_fetcher):
             for optim in self.optimizer : optim.step()
         

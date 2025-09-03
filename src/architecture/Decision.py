@@ -1,11 +1,15 @@
 import torch
 import torch.nn as nn
+import math
 
 
 class Decision(nn.Module):
     def __init__(self, dim : int, layers : int, vocab_size : int, inner_dim : int = 2048, heads : int = 8, dropout=0.1,decoder_only : bool = False, norm_first : bool = True, relative_pe : bool = True):
         
         super().__init__()
+        
+        dim = 512
+        heads = 8
         
         self.dim = dim
         self.layers = layers
@@ -15,6 +19,8 @@ class Decision(nn.Module):
         self.norm_first = norm_first
         self.dropout=dropout
         self.relative_pe = relative_pe
+        self.embedding = nn.Embedding(vocab_size,dim)
+        self.pe = PositionalEncoding(dim,0,100)
         
         if self.decoder_only :
             if self.relative_pe:
@@ -61,6 +67,11 @@ class Decision(nn.Module):
                 src_mask : torch.Tensor = None, tgt_mask : torch.Tensor = None, 
                 src_pad_mask : torch.Tensor = None, tgt_pad_mask : torch.Tensor = None) -> torch.Tensor:
         
+        src = self.embedding(src)
+        src = self.pe(src)
+        tgt = self.embedding(tgt)
+        tgt = self.pe(tgt)
+        
         if self.decoder_only:
             memory = src
             out = self.decision(tgt,memory,tgt_mask=tgt_mask,memory_mask=src_mask,tgt_key_padding_mask=tgt_pad_mask,memory_key_padding_mask=src_pad_mask)
@@ -73,7 +84,10 @@ class Decision(nn.Module):
         
         return out
 
+    #TODO : project to embedding layer for encode() and decode()
     def encode(self,src,src_mask=None,src_pad_mask=None):
+        src = self.embedding(src)
+        src = self.pe(src)
         if not self.decoder_only:
             memory = self.decision.encoder(src,mask=src_mask,src_key_padding_mask=src_pad_mask)
         
@@ -82,6 +96,10 @@ class Decision(nn.Module):
         return memory
     
     def decode(self,tgt,memory,tgt_mask=None,memory_mask=None,tgt_pad_mask=None,memory_pad_mask=None) -> torch.Tensor:
+        tgt = self.embedding(tgt)
+        tgt = self.pe(tgt)
+        #memory is already in embedding space and position encoded
+        
         if not self.decoder_only:
             out = self.decision.decoder(tgt,memory,tgt_mask=tgt_mask,memory_mask=memory_mask,tgt_key_padding_mask=tgt_pad_mask,memory_key_padding_mask=memory_pad_mask)
         else : out = self.decision(tgt,memory,tgt_mask=tgt_mask,memory_mask=memory_mask,tgt_key_padding_mask=tgt_pad_mask,memory_key_padding_mask=memory_pad_mask)
@@ -238,4 +256,27 @@ class MultiHeadAttentionLayer(nn.Module):
         
         #x = [batch size, query len, hid dim]
         
+        return x
+    
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, embed_dim: int, dropout: float = 0.1, max_len: int = 5000):
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        position = torch.arange(max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, embed_dim, 2) * (-math.log(10000.0) / embed_dim))
+        pe = torch.zeros(max_len, embed_dim)
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('pe', pe)
+        self.size=max_len
+
+    def forward(self, x : torch.Tensor) -> torch.Tensor:
+        """
+        Arguments:
+            x: Tensor, shape ``[batch_size, seq_len, embedding_dim]``
+        """
+        x = x + self.pe[:x.size(1)]
+        x = self.dropout(x)
         return x

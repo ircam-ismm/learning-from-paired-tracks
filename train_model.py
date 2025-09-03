@@ -1,8 +1,11 @@
+from src.utils.utils import lock_gpu
+DEVICE = lock_gpu()[0][0]
+
 from src.architecture import SimpleSeq2SeqModel, build_backbone
 import math
 import numpy as np
 from typing import List
-from src.utils.utils import lock_gpu, prYellow, build_coupling_ds
+from src.utils.utils import prYellow, build_coupling_ds
 from src.MusicDataset import MusicContainerPostChunk, MusicDataCollator, Fetcher
 from torch.utils.data import DataLoader
 from sklearn.cluster import MiniBatchKMeans
@@ -14,7 +17,7 @@ from argparse import ArgumentParser
 import copy
 
 
-DEVICE = lock_gpu()[0][0]
+
 
 def trainVQ(codebook_size : int, chunk_duration : float, tracks : List[str]):
     #fonction reçoit taille du codebook, le chunk size et la liste des pistes utilisées pour l'entrainement du moodèle
@@ -136,7 +139,7 @@ def build_model(args):
 
     #DECISION
     transformer_layers = args.transformer_layers
-    decoder_only=True #args.decoder_only 
+    decoder_only= False #True #args.decoder_only 
     inner_dim=args.inner_dim
     heads=args.heads
     dropout = args.dropout
@@ -241,7 +244,7 @@ def main(args):
     #build trainer
     trainer = build_trainer(model,args)
     #launch training
-    trainer.train(fetcher,eval_fetcher,args.epochs,reg_alpha=0) 
+    trainer.train(fetcher,eval_fetcher,args.epochs,reg_alpha=0, evaluate=False) 
 
 if __name__=='__main__':
     args = argparser().parse_args()

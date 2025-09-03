@@ -1,15 +1,15 @@
+from utils.utils import lock_gpu
+DEVICES,_=lock_gpu()
+DEVICE = DEVICES[0]
+
 from MusicDataset import MusicContainer4dicy2
 from utils.dicy2_generator import generate_memory_corpus, generate_response
 from architecture.Model import load_model_checkpoint
-from utils.utils import lock_gpu
 import argparse
 from pathlib import Path
 from utils.utils import prYellow
 import numpy as np
 import os 
-
-DEVICES,_=lock_gpu()
-DEVICE = DEVICES[0]
 
 
 def parse_args():

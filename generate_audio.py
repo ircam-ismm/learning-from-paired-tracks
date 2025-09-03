@@ -1,3 +1,7 @@
+from utils.utils import lock_gpu
+DEVICES,_=lock_gpu()
+DEVICE = DEVICES[0]
+
 from src.architecture.Model import load_model_checkpoint
 import os
 import argparse
@@ -44,9 +48,7 @@ if __name__=='__main__':
     args = parse_args()
     
     
-    from utils.utils import lock_gpu
-    DEVICES,_=lock_gpu()
-    DEVICE = DEVICES[0]
+    
     
     model_ckps=args.model_ckp
     
