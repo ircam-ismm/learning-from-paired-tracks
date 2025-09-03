@@ -195,3 +195,6 @@ cython_debug/
 
 # dont save ckps
 *.pt
+
+#dont keep examples
+examples
