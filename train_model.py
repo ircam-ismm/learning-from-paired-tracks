@@ -1,12 +1,13 @@
 from src.utils.utils import lock_gpu
 DEVICE = lock_gpu()[0][0]
 
-from src.architecture import SimpleSeq2SeqModel, build_backbone, build_localEncoder, build_decision, Seq2SeqCoupling
+from src.architecture import build_backbone, build_localEncoder, build_decision, Seq2SeqCoupling
 import math
 import numpy as np
 from typing import List
 from src.utils.utils import prYellow, build_coupling_ds
 from src.MusicDataset import MusicContainerPostChunk, MusicDataCollator, Fetcher
+from src.utils.coupling_ds_generator import extract_all_groups
 from torch.utils.data import DataLoader
 from sklearn.cluster import MiniBatchKMeans
 from tqdm import tqdm
@@ -15,7 +16,7 @@ from src.trainer import Seq2SeqTrainer
 import torch
 from argparse import ArgumentParser
 import copy
-
+from pathlib import Path
 
 
 
@@ -35,6 +36,16 @@ def trainVQ(codebook_size : int, chunk_duration : float, tracks : List[str]):
     model.freeze()
     model.eval()
 
+    #kmeans ckp name
+    ckp_name = f"kmeans_centers_{codebook_size}_{chunk_duration}s"
+    ckp_path = f"myVQ/{ckp_name}.npy"
+    i=1
+    while os.path.exists(ckp_path):
+        #ckp_name+=f"_{i}"
+        ckp_path = f"myVQ/{ckp_name}_{i}.npy"
+        i+=1
+    
+       
 
     #dataset
     track_duration=15
@@ -45,7 +56,7 @@ def trainVQ(codebook_size : int, chunk_duration : float, tracks : List[str]):
     # dataloader
     batch_size=64
     collate_fn = MusicDataCollator()
-    loader = DataLoader(ds,batch_size,shuffle=True,collate_fn=collate_fn)
+    loader = DataLoader(ds,batch_size,shuffle=True,collate_fn=collate_fn,num_workers=4)
     fetcher=Fetcher(loader, device=DEVICE)
 
 
@@ -100,9 +111,11 @@ def trainVQ(codebook_size : int, chunk_duration : float, tracks : List[str]):
         #save centers for later use as VQ at end of epoch
         centers=k_means.cluster_centers_
         prYellow(f"Saving kmeans centers...")
-        np.save(f"myVQ/kmeans_centers_{codebook_size}_{chunk_duration}s.npy",centers,allow_pickle=True)
+        np.save(ckp_path,centers,allow_pickle=True)
         if end:
             break
+    
+    return ckp_path
 
 def build_model(args):
     
@@ -129,7 +142,7 @@ def build_model(args):
     condense_type=None #used if encoder head is attention
 
     
-    VQpath = f"myVQ/kmeans_centers_{vocab_size}_{chunk_duration}s.npy"
+    VQpath = args.vq_ckp_path #f"myVQ/kmeans_centers_{vocab_size}_{chunk_duration}s.npy"
     
     localEncoder=build_localEncoder(pretrained_bb_checkpoint,bb_type, freeze_backbone, dim,
                                     vocab_size, learnable_codebook, restart_codebook, pre_post_chunking,
@@ -203,7 +216,7 @@ def build_trainer(model:torch.nn.Module, args):
     run_id = f"model_{args.chunk_duration}s_A{args.vocab_size}"
     new_run_id=run_id
     i=1
-    while os.path.exists(f"runs/{new_run_id}.pt"): #find new name if not resume training
+    while os.path.exists(f"runs/coupling/{new_run_id}.pt"): #find new name if not resume training
         new_run_id=run_id+f'_{i}'
         i+=1
     run_id=new_run_id
@@ -223,6 +236,7 @@ def argparser():
     
     parser.add_argument("--track1", type = str, help = "Path to the input (guide) audio file or folder") #str type because Dataset class still needs update to enable Path type...
     parser.add_argument("--track2", type = str, help = "Path to the output (target) audio file or folder")
+    parser.add_argument("--root_folder",type = str, default=None, help = "Root folder of the dataset of multi-stem mixes.")
     parser.add_argument("--vocab_size", type=int, choices=[16,32,64,128,256,512,1024], help="Codebook size")
     parser.add_argument('-layers','--transformer_layers',type=int,default=6)
     parser.add_argument('--inner_dim',type=int,default=2048)
@@ -231,7 +245,7 @@ def argparser():
     #parser.add_argument("--decoder_only",action='store_const', default=False,const=True)
     parser.add_argument("--embed_dim",type=int,default=512)
     parser.add_argument("--chunk_duration", type=float, default=0.5, help="Duration in seconds of the audio segments.")
-    parser.add_argument("--batch_size", type = int, default=None, help = "batch size : default None. If not specified batch size is computed as to have a batch = the whole track")
+    parser.add_argument("--batch_size", type = int, default=8, help = "If not specified batch size is computed as to have a batch = the whole track")
     parser.add_argument("--pre_segmentation", type=str, default = "sliding", choices = ["sliding", "uniform"])
     parser.add_argument('-lr','--learning_rate',type=float,default=1e-5)
     parser.add_argument('-decay','--weight_decay',type=float,default=1e-5)
@@ -243,9 +257,10 @@ def argparser():
 
 def main(args):
     
-    tracks = [args.track1, args.track2] #get list of tracks from args
+    tracks = [args.track1, args.track2] if args.root_folder is None else [args.root_folder] #get list of tracks from args
     #train VQ on input tracks
-    trainVQ(args.vocab_size, args.chunk_duration, tracks)
+    vq_ckp_path = trainVQ(args.vocab_size, args.chunk_duration, tracks)
+    args.vq_ckp_path = vq_ckp_path
     
     #build model
     model = build_model(args)
@@ -253,7 +268,8 @@ def main(args):
     #build dataset from input tracks
     #source and output tracks are given as separate arguments.
     #each can be a list of several tracks ? -> if multiple tracks are given, coupled tracks should share the same name
-    fetcher = build_coupling_ds([tracks],args.batch_size, 15., args.chunk_duration,pre_segmentation=args.pre_segmentation, distributed=False, device=DEVICE)
+    ds = [tracks] if args.root_folder is None else extract_all_groups(Path(args.root_folder))
+    fetcher = build_coupling_ds(ds, args.batch_size, 15., args.chunk_duration,pre_segmentation=args.pre_segmentation, distributed=False, device=DEVICE)
     eval_fetcher = copy.deepcopy(fetcher)
     #build trainer
     trainer = build_trainer(model,args)

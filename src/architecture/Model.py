@@ -56,6 +56,10 @@ def load_model_checkpoint(ckp_path:Path, backbone_checkpoint="../w2v_music_check
     inner_dim=model_params["inner_dim"]
     heads = model_params["heads"]
     try:
+        embed_dim = model_params["embed_dim"]
+    except :
+        embed_dim = None
+    try:
         dropout = model_params["dropout"]
     except :
         dropout = 0.1 #default value for older models
@@ -84,7 +88,7 @@ def load_model_checkpoint(ckp_path:Path, backbone_checkpoint="../w2v_music_check
     model = SimpleSeq2SeqModel(backbone_checkpoint,bb_type,dim,vocab_size,max_len,encoder_head,use_special_tokens,chunking=chunking,
                                    condense_type=condense_type,has_masking=has_masking,task=task,
                                    transformer_layers=transformer_layers,decoder_only=decoder_only, relative_pe=relative_pe,inner_dim=inner_dim,heads=heads,dropout=dropout,
-                                   special_vq=special_vq,chunk_size = model_params["chunk_size"], data = data,VQpath=vq_ckp)
+                                   special_vq=special_vq,chunk_size = model_params["chunk_size"], data = data,VQpath=vq_ckp, embed_dim=embed_dim)
     
     #else : raise ValueError(f"the model class from the checkpoint is invalid. Should be an instance (or subclass) of 'Seq2SeqBase' but got {model_class}")
     
@@ -253,6 +257,7 @@ def SimpleSeq2SeqModel(backbone_checkpoint : Path,
                        data : str = None,
                        VQpath : str = None,
                        relative_pe : bool = False,
+                       embed_dim : int = None,
                     #    kmeans_init : bool = False,
                     #    threshold_ema_dead_code : float = 0,
                     #    commit_weight : float = 1.,
@@ -300,8 +305,10 @@ def SimpleSeq2SeqModel(backbone_checkpoint : Path,
                                     vocab_size, learnable_codebook, restart_codebook, chunking,
                                     encoder_head, condense_type, 
                                     special_vq, chunk_size, data, VQpath)
+    
+    if embed_dim == None : embed_dim = localEncoder.dim
         
-    decision_module = build_decision(localEncoder.dim,transformer_layers,
+    decision_module = build_decision(embed_dim,transformer_layers,
                                      vocab_size=vocab_size+3*use_special_tokens, #+ pad, sos, eos
                                      inner_dim=inner_dim,
                                      heads=heads,
