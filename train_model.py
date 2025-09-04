@@ -125,6 +125,10 @@ def build_model(args):
     track_duration = 15.0 #args.track_duration #(30/0.5)*MAX_CHUNK_DURATION #[sec] comme ca on a tojours des sequences de 60 tokens dans decision #[sec]
     #segmentation= args.segmentation
     
+    encoder_head="mean" #COLLAPSE method
+    condense_type=None #used if encoder head is attention
+
+    
     VQpath = f"myVQ/kmeans_centers_{vocab_size}_{chunk_duration}s.npy"
     
     localEncoder=build_localEncoder(pretrained_bb_checkpoint,bb_type, freeze_backbone, dim,
@@ -137,14 +141,11 @@ def build_model(args):
     #div_term = MAX_CHUNK_DURATION if SEGMENTATION_STRATEGY in ['uniform','sliding'] else MIN_RESOLUTION
     max_len = int(math.ceil(track_duration/chunk_duration)+1 + 10) #max len is the max number of chunks + some overhead 
     
-    encoder_head="mean" #COLLAPSE method
-    condense_type=None #used if encoder head is attention
-
     use_special_tokens=True 
 
     #DECISION
     transformer_layers = args.transformer_layers
-    decoder_only = args.decoder_only 
+    decoder_only = False #if embedding layer is used then decision can only be an encoder-decoder transformer
     inner_dim=args.inner_dim
     heads=args.heads
     dropout = args.dropout
@@ -227,7 +228,7 @@ def argparser():
     parser.add_argument('--inner_dim',type=int,default=2048)
     parser.add_argument('--heads',type=int,default=8)
     parser.add_argument('--dropout',type=float,default=0.1)
-    parser.add_argument("--decoder_only",action='store_const',default=False,const=True)
+    #parser.add_argument("--decoder_only",action='store_const', default=False,const=True)
     parser.add_argument("--embed_dim",type=int,default=512)
     parser.add_argument("--chunk_duration", type=float, default=0.5, help="Duration in seconds of the audio segments.")
     parser.add_argument("--batch_size", type = int, default=None, help = "batch size : default None. If not specified batch size is computed as to have a batch = the whole track")
