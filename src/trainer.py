@@ -117,6 +117,7 @@ class Seq2SeqTrainer(nn.Module):
                         "mask_len" : self.train_fetcher.loader.collate_fn.mask_len,
                         "task" : "coupling" if type(model)==Seq2SeqCoupling else "completion",
                         "decoder_only":self.model.decision.decoder_only,
+                        "embed_dim":self.model.decision.dim,
                         "transformer_layers":self.model.decision.layers,
                         "relative_pe" : self.model.decision.relative_pe,
                         "dropout":self.model.decision.dropout,
