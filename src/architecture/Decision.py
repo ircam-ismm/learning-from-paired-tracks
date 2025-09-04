@@ -4,12 +4,9 @@ import math
 
 
 class Decision(nn.Module):
-    def __init__(self, dim : int, layers : int, vocab_size : int, inner_dim : int = 2048, heads : int = 8, dropout=0.1,decoder_only : bool = False, norm_first : bool = True, relative_pe : bool = True):
+    def __init__(self, dim : int, layers : int, vocab_size : int, inner_dim : int = 2048, heads : int = 8, dropout=0.1,decoder_only : bool = False, norm_first : bool = True, relative_pe : bool = True, max_len=100):
         
         super().__init__()
-        
-        dim = 512
-        heads = 8
         
         self.dim = dim
         self.layers = layers
@@ -20,7 +17,7 @@ class Decision(nn.Module):
         self.dropout=dropout
         self.relative_pe = relative_pe
         self.embedding = nn.Embedding(vocab_size,dim)
-        self.pe = PositionalEncoding(dim,0,100)
+        self.pe = PositionalEncoding(dim,0,max_len)
         
         if self.decoder_only :
             if self.relative_pe:
@@ -88,6 +85,7 @@ class Decision(nn.Module):
     def encode(self,src,src_mask=None,src_pad_mask=None):
         src = self.embedding(src)
         src = self.pe(src)
+        
         if not self.decoder_only:
             memory = self.decision.encoder(src,mask=src_mask,src_key_padding_mask=src_pad_mask)
         

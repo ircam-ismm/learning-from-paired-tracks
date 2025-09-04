@@ -221,9 +221,9 @@ def build_localEncoder(backbone_ckp : Path, backbone_type : str, freeze_backbone
 #create class for decision module to handle forward call in seq2seq
 def build_decision(dim : int, layers : int, vocab_size : int, 
                    inner_dim : int = 2048, heads : int = 8, dropout : float = 0.1, decoder_only : bool = False, 
-                   norm_first : bool = True, relative_pe : bool = False) -> Decision:
+                   norm_first : bool = True, relative_pe : bool = False, max_len : int = 100) -> Decision:
     
-    decisionModule = Decision(dim, layers, vocab_size, inner_dim, heads, dropout, decoder_only, norm_first, relative_pe)
+    decisionModule = Decision(dim, layers, vocab_size, inner_dim, heads, dropout, decoder_only, norm_first, relative_pe, max_len)
     return decisionModule
     
 

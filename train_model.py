@@ -1,7 +1,7 @@
 from src.utils.utils import lock_gpu
 DEVICE = lock_gpu()[0][0]
 
-from src.architecture import SimpleSeq2SeqModel, build_backbone
+from src.architecture import SimpleSeq2SeqModel, build_backbone, build_localEncoder, build_decision, Seq2SeqCoupling
 import math
 import numpy as np
 from typing import List
@@ -28,7 +28,7 @@ def trainVQ(codebook_size : int, chunk_duration : float, tracks : List[str]):
     output_final_proj = False
 
     #model
-    prYellow("Loading model from checkpoint...")
+    prYellow("Loading backbone from checkpoint...")
     checkpoint="../w2v_music_checkpoint.pt"
     model = build_backbone(checkpoint,type="w2v",mean=False,pooling=False,output_final_proj=output_final_proj)
     model.to(DEVICE)
@@ -118,12 +118,19 @@ def build_model(args):
     #VQ
     #dim=768  #quantizer output dimension. if different than backbone dim must be learnable codebook (becomes an nn.Embedding layer to be learned)
     learnable_codebook= False #args.learnable_cb#args.learnable_cb #if the codebooks should get closer to the unquantized inputs
-    restart_codebook= False #args.restart_codebook #update dead codevectors
+    restart_codebook = False #args.restart_codebook #update dead codevectors
     #if restart_codebook and not learnable_codebook: prRed("restart codebook without learnable codebook") 
     
     chunk_duration = args.chunk_duration #[sec] #equivalent to resolution for decision input
     track_duration = 15.0 #args.track_duration #(30/0.5)*MAX_CHUNK_DURATION #[sec] comme ca on a tojours des sequences de 60 tokens dans decision #[sec]
     #segmentation= args.segmentation
+    
+    VQpath = f"myVQ/kmeans_centers_{vocab_size}_{chunk_duration}s.npy"
+    
+    localEncoder=build_localEncoder(pretrained_bb_checkpoint,bb_type, freeze_backbone, dim,
+                                    vocab_size, learnable_codebook, restart_codebook, pre_post_chunking,
+                                    encoder_head, condense_type, 
+                                    False, chunk_duration, None, VQpath)
     
 
     #POS ENCODING
@@ -135,42 +142,46 @@ def build_model(args):
 
     use_special_tokens=True 
 
-    task = "coupling" #args.task
-
     #DECISION
     transformer_layers = args.transformer_layers
-    decoder_only= False #True #args.decoder_only 
+    decoder_only = args.decoder_only 
     inner_dim=args.inner_dim
     heads=args.heads
     dropout = args.dropout
     
-    has_masking = False #args.has_masking
-    
-    VQpath = f"myVQ/kmeans_centers_{vocab_size}_{chunk_duration}s.npy"
+    decision_module = build_decision(args.embed_dim,transformer_layers,
+                                     vocab_size=vocab_size+3*use_special_tokens, #+ pad, sos, eos
+                                     inner_dim=inner_dim,
+                                     heads=heads,
+                                     dropout=dropout,
+                                     decoder_only=decoder_only)
 
-    seq2seq=SimpleSeq2SeqModel(pretrained_bb_checkpoint,
-                                    bb_type,
-                                    dim,
-                                    vocab_size,
-                                    max_len,
-                                    encoder_head,
-                                    chunking=pre_post_chunking,
-                                    use_special_tokens=use_special_tokens,
-                                    task=task,
-                                    condense_type=condense_type,
-                                    has_masking=has_masking,
-                                    freeze_backbone=freeze_backbone,
-                                    learnable_codebook=learnable_codebook,
-                                    restart_codebook=restart_codebook,
-                                    transformer_layers=transformer_layers,
-                                    dropout=dropout,
-                                    decoder_only=decoder_only,
-                                    inner_dim=inner_dim,
-                                    heads=heads,
-                                    chunk_size=chunk_duration,
-                                    special_vq=False,
-                                    VQpath = VQpath
-                                    )
+    # seq2seq=SimpleSeq2SeqModel(pretrained_bb_checkpoint,
+    #                                 bb_type,
+    #                                 dim,
+    #                                 vocab_size,
+    #                                 max_len,
+    #                                 encoder_head,
+    #                                 chunking=pre_post_chunking,
+    #                                 use_special_tokens=use_special_tokens,
+    #                                 task=task,
+    #                                 condense_type=condense_type,
+    #                                 has_masking=has_masking,
+    #                                 freeze_backbone=freeze_backbone,
+    #                                 learnable_codebook=learnable_codebook,
+    #                                 restart_codebook=restart_codebook,
+    #                                 transformer_layers=transformer_layers,
+    #                                 dropout=dropout,
+    #                                 decoder_only=decoder_only,
+    #                                 inner_dim=inner_dim,
+    #                                 heads=heads,
+    #                                 chunk_size=chunk_duration,
+    #                                 special_vq=False,
+    #                                 VQpath = VQpath
+    #                                 )
+    
+    seq2seq = Seq2SeqCoupling(localEncoder, decision_module, max_len, use_special_tokens)
+    
     return seq2seq
 
 def build_trainer(model:torch.nn.Module, args):
@@ -214,8 +225,10 @@ def argparser():
     parser.add_argument("--vocab_size", type=int, choices=[16,32,64,128,256,512,1024], help="Codebook size")
     parser.add_argument('-layers','--transformer_layers',type=int,default=6)
     parser.add_argument('--inner_dim',type=int,default=2048)
-    parser.add_argument('--heads',type=int,default=12)
+    parser.add_argument('--heads',type=int,default=8)
     parser.add_argument('--dropout',type=float,default=0.1)
+    parser.add_argument("--decoder_only",action='store_const',default=False,const=True)
+    parser.add_argument("--embed_dim",type=int,default=512)
     parser.add_argument("--chunk_duration", type=float, default=0.5, help="Duration in seconds of the audio segments.")
     parser.add_argument("--batch_size", type = int, default=None, help = "batch size : default None. If not specified batch size is computed as to have a batch = the whole track")
     parser.add_argument("--pre_segmentation", type=str, default = "sliding", choices = ["sliding", "uniform"])

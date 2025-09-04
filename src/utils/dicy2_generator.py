@@ -170,7 +170,7 @@ def generate_response(src_ds : MusicContainer4dicy2, model : Seq2SeqCoupling,
         if with_coupling: #if we want to generate a more complex response 
             
             #TODO : ADD ARGUMENT TO USE LAST PREDICTION AS BEGINNING OF TGT ?
-            tgt_idx = model.coupling(src_idx, #replaced encoded_src with src_idx since we use embedding layer
+            tgt_idx = model.coupling(encoded_src, #replaced encoded_src with src_idx since we use embedding layer
                                        src_pad_mask, 
                                        k, 
                                        max_len=len(encoded_src[0]),

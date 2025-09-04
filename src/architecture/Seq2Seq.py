@@ -589,17 +589,17 @@ class Seq2SeqCoupling(Seq2SeqBase):
             
         
         #add position information (if not trainable relative pos encoding)
-        if not self.decision.relative_pe:
-            z_src = self.pe.forward(z_src)
-            z_tgt = self.pe.forward(z_tgt)
+        # if not self.decision.relative_pe:
+        #     z_src = self.pe.forward(z_src)
+        #     z_tgt = self.pe.forward(z_tgt)
         
         #detach targets -> avoid gradient flowing from answers
         z_tgt = z_tgt.detach()
         tgt_idx = tgt_idx.detach()
         
         #rename to src and tgt
-        src = src_idx #z_src
-        tgt = tgt_idx #z_tgt
+        src = src_idx
+        tgt = tgt_idx
         
         #the seq2seq transformer predicts every next step so we remove last timestep for it to be predicted (all timesteps are predicted sequentially)
         tgt_input = tgt[:,:-1] 
@@ -632,7 +632,7 @@ class Seq2SeqCoupling(Seq2SeqBase):
         src = encoded_src
         
         #apply position to src
-        #src = self.pe.forward(src) #PE done in Decision
+        # src = self.pe.forward(src) #PE done in Decision
         
         memory = self.decision.encode(src,src_mask=None,src_pad_mask=src_pad_mask) #encode src once -> pass through Transformer encoder if enc-dec else will be = src
         
@@ -650,9 +650,9 @@ class Seq2SeqCoupling(Seq2SeqBase):
         
         if not max_len : max_len = encoded_src.size(1) #maximum generated sequence size is equal to size of input sequence
         
-        #tgt, tgt_idx, probs = self.coupling(encoded_src, src_pad_mask, k, max_len, decoding_type, temperature, gt_set, entropy_weight) #generate sequence of expected labels for coupling
-        #give src_idx as argument to projecxt to embedding space
+        # tgt, tgt_idx, probs = self.coupling(encoded_src, src_pad_mask, k, max_len, decoding_type, temperature, gt_set, entropy_weight) #generate sequence of expected labels for coupling
         
+        #give src_idx as argument to projecxt to embedding space
         tgt, tgt_idx, probs = self.coupling(src_idx, src_pad_mask, k, max_len, decoding_type, temperature, gt_set, entropy_weight) #generate sequence of expected labels for coupling
         
         return tgt, tgt_idx, probs #tgt probably not used but not bad idea    
