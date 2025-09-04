@@ -34,7 +34,10 @@ The repository includes all the code necessary to reproduce the results presente
 To facilitate usage, three tutorial scripts are provided:
 
 1. **`train_model.py`**
-   Train the Decision module on a pair of audio tracks.
+   Train the Decision module on :
+   - pair of audio tracks, e.g. (track1, track2)
+   - paired audio folders, e.g. (A1, A2). CAREFUL, NAMING OF TRACKS INSIDE EACH FOLDERS SHOULD SHARE THE SAME NAME (i.e. A1/.../track1, A2/.../track1)
+   - one folder of mixes with the following folder structure : dataset/mix1/{stem1, stem2, ..., stemN}
 
 2. **`use_decision.py`**
    Generate a symbolic specification (e.g., structure or timing) from an audio input using a trained Decision module.
