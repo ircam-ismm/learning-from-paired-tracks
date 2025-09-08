@@ -17,10 +17,11 @@ import torch
 from argparse import ArgumentParser
 import copy
 from pathlib import Path
+import datetime
 
 
 
-def trainVQ(codebook_size : int, chunk_duration : float, tracks : List[str]):
+def trainVQ(codebook_size : int, chunk_duration : float, tracks : List[str], folder = str):
     #fonction reçoit taille du codebook, le chunk size et la liste des pistes utilisées pour l'entrainement du moodèle
     
     #codebook_size=16
@@ -37,16 +38,11 @@ def trainVQ(codebook_size : int, chunk_duration : float, tracks : List[str]):
     model.eval()
 
     #kmeans ckp name
-    ckp_name = f"kmeans_centers_{codebook_size}_{chunk_duration}s"
-    ckp_path = f"myVQ/{ckp_name}.npy"
-    i=1
-    while os.path.exists(ckp_path):
-        #ckp_name+=f"_{i}"
-        ckp_path = f"myVQ/{ckp_name}_{i}.npy"
-        i+=1
+    ckp_name = f"kmeans_centers_{codebook_size}_{chunk_duration}s.npy"
+    #folder = f"myVQ/{datetime.datetime.now()}"
+    #os.makedirs(folder, exist_ok=True)
+    ckp_path = Path(f"runs/coupling/{folder}/{ckp_name}")
     
-       
-
     #dataset
     track_duration=15
     sr=16000
@@ -143,7 +139,7 @@ def build_model(args):
 
     
     VQpath = args.vq_ckp_path #f"myVQ/kmeans_centers_{vocab_size}_{chunk_duration}s.npy"
-    
+
     localEncoder=build_localEncoder(pretrained_bb_checkpoint,bb_type, freeze_backbone, dim,
                                     vocab_size, learnable_codebook, restart_codebook, pre_post_chunking,
                                     encoder_head, condense_type, 
@@ -216,7 +212,7 @@ def build_trainer(model:torch.nn.Module, args):
     run_id = f"model_{args.chunk_duration}s_A{args.vocab_size}"
     new_run_id=run_id
     i=1
-    while os.path.exists(f"runs/coupling/{new_run_id}.pt"): #find new name if not resume training
+    while os.path.exists(f"runs/coupling/{args.folder}/{new_run_id}.pt"): #find new name if not resume training
         new_run_id=run_id+f'_{i}'
         i+=1
     run_id=new_run_id
@@ -227,7 +223,8 @@ def build_trainer(model:torch.nn.Module, args):
                             chunk_size=args.chunk_duration, #PROBLEME VIENT D'ICI ON UTILISE CHUNK SIZE DANS TRAINER ET CA ECRASE LA VALEUR AU PROCHAIN CKP
                             track_size=15.,
                             scheduled_sampling = args.scheduled_sampling,
-                            scheduler_alpha=args.scheduler_alpha)
+                            scheduler_alpha=args.scheduler_alpha,
+                            save_folder=f"runs/coupling/{args.folder}")
     
     return trainer
 
@@ -259,7 +256,7 @@ def main(args):
     
     tracks = [args.track1, args.track2] if args.root_folder is None else [args.root_folder] #get list of tracks from args
     #train VQ on input tracks
-    vq_ckp_path = trainVQ(args.vocab_size, args.chunk_duration, tracks)
+    vq_ckp_path = trainVQ(args.vocab_size, args.chunk_duration, tracks, folder = args.folder)
     args.vq_ckp_path = vq_ckp_path
     
     #build model
@@ -279,6 +276,8 @@ def main(args):
 if __name__=='__main__':
     args = argparser().parse_args()
     #create folders
-    os.makedirs("myVQ/", exist_ok=True) #create folder
-    os.makedirs("runs/coupling",exist_ok=True)
+    folder = f"{datetime.datetime.now()}"
+    os.makedirs(f"myVQ/{folder}", exist_ok=True) #create folder
+    os.makedirs(f"runs/coupling/{folder}",exist_ok=True)
+    args.folder = folder
     main(args)

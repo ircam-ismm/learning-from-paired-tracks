@@ -55,7 +55,8 @@ class Seq2SeqTrainer(nn.Module):
                  weighed_crossentropy : bool = False,
                  scheduled_sampling : bool = True,
                  scheduler_alpha : float = 2,
-                 seq_nll_loss : bool = False):
+                 seq_nll_loss : bool = False,
+                 save_folder : str = "runs/coupling"):
         
         super().__init__()
         self.model=model
@@ -67,6 +68,7 @@ class Seq2SeqTrainer(nn.Module):
         self.trainer_name = trainer_name
         self.segmentation = segmentation
         self.save_ckp=save_ckp
+        self.save_folder = save_folder
         #self.resume_epoch = resume_epoch
         self.resume_ckp=resume_ckp
         
@@ -137,7 +139,7 @@ class Seq2SeqTrainer(nn.Module):
             "optimizer":optim_state_dict,
             "model_params":model_params,
             "perfs" : perfs
-            },"runs/coupling/"+ckp_name)
+            },f"{self.save_folder}/{ckp_name}")
     
     #TODO : FIND HOW TO RELOAD CHECKPOINT DURING DDP TRAINING
     # check : https://stackoverflow.com/questions/70386800/what-is-the-proper-way-to-checkpoint-during-training-when-using-distributed-data
