@@ -267,7 +267,7 @@ class Seq2SeqTrainer(nn.Module):
         ax1.set_ylabel("Loss")
         ax2.set_ylabel("Accuracy")
         ax2.grid()
-        fig.savefig(f"runs/coupling/{name}_{self.trainer_name}.png")
+        fig.savefig(f"{self.save_folder}/{name}_{self.trainer_name}.png")
         #fig.tight_layout()
         #fig.show()
         plt.close()
