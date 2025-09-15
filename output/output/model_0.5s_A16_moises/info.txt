@@ -1,0 +1,22 @@
+Mix : Cont_04f2_Mem_bass_Mem_04f2_Guide_piano_A16_D0.5_K0.99_0 :
+	Memory: examples/04f2/Guide_piano.wav
+	Sources:
+	 - examples/04f2/Mem_bass.wav
+	Model : model_0.5s_A16
+	Params :
+		vocab_size = 16, segmentation = uniform, w_size = 0.5[s]
+		top-K = 0.99, with_coupling = True, remove = False, decoding = greedy, force_coupling = True, temperature = 1.0, entropy_weight = 0.0
+	Analysis :
+		accuracy = 14.58%, mean_len = 1.38, median_len = 1.00, max_len = 4, entropy = 2.94 [Bits], gt_set_portion = 63.16%
+
+Mix : Cont_Lead-Acc_0e0d_Mem_Lead-Acc_0e0d_A16_D0.5_K0.99_0 :
+	Memory: ../consignes_generation_2025/moises/Lead-Acc/0e0d/Mem_guitar.wav
+	Sources:
+	 - ../consignes_generation_2025/moises/Lead-Acc/0e0d/Guide_piano.wav
+	Model : model_0.5s_A16
+	Params :
+		vocab_size = 16, segmentation = uniform, w_size = 0.5[s]
+		top-K = 0.99, with_coupling = True, remove = False, decoding = greedy, force_coupling = True, temperature = 1.0, entropy_weight = 0.0
+	Analysis :
+		accuracy = 21.88%, mean_len = 1.36, median_len = 1.00, max_len = 4, entropy = 2.76 [Bits], gt_set_portion = 52.63%
+

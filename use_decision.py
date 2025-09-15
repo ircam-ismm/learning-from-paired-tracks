@@ -14,12 +14,12 @@ import os
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--memory', type=Path, help = "Path to 'memory' audio file.")
     parser.add_argument('--source', type=Path,nargs="*", help="Path(s) to guiding input audio file(s). Multiple files will automatically be mixed.")
     parser.add_argument("--model_ckp",type=Path, help = "Path to trained model checkpoint. If you choose one of your ptrained models from 'train_model.py', specify the path to the trained VQ on your specific data.")
     parser.add_argument("--VQpath",type=str,default=None,help="path to trained VQ from 'train_model.py' script.")
     parser.add_argument("--with_coupling",action='store_const', default=True, const=False, 
                         help="De-activate coupling, do matching from input to output.") #TODO : change param name
+    parser.add_argument('--memory', type=Path, help = "Optional. Path to 'memory' audio file. Needed if force_coupling is used.")
     parser.add_argument("--k",type=float,default=0.8, help = "Top-K/P value. If k<1 use top-P, else top-K. Increasing k/p will add diversity to the output.")
     parser.add_argument("--force_coupling", action = 'store_true', help="Constarined Generation flag.")
     parser.add_argument("--temperature", type = float, default=1., help = "Temperature value. Increasing this parameter will flatten the probability distribution, increasing the diversity of predictions.")

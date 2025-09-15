@@ -165,6 +165,9 @@ def build_model(args):
                                      heads=heads,
                                      dropout=dropout,
                                      decoder_only=decoder_only)
+    
+    total_params = sum(p.numel() for p in decision_module.parameters())
+    print(total_params)
 
     # seq2seq=SimpleSeq2SeqModel(pretrained_bb_checkpoint,
     #                                 bb_type,
@@ -235,13 +238,12 @@ def argparser():
     parser.add_argument("--track2", type = str, help = "Path to the output (target) audio file or folder")
     parser.add_argument("--root_folder",type = str, default=None, help = "Root folder of the dataset of multi-stem mixes.")
     parser.add_argument("--vocab_size", type=int, choices=[16,32,64,128,256,512,1024], help="Codebook size")
+    parser.add_argument("--chunk_duration", type=float, default=0.5, help="Duration in seconds of the audio segments.")
     parser.add_argument('-layers','--transformer_layers',type=int,default=6)
     parser.add_argument('--inner_dim',type=int,default=2048)
     parser.add_argument('--heads',type=int,default=8)
     parser.add_argument('--dropout',type=float,default=0.1)
-    #parser.add_argument("--decoder_only",action='store_const', default=False,const=True)
     parser.add_argument("--embed_dim",type=int,default=512)
-    parser.add_argument("--chunk_duration", type=float, default=0.5, help="Duration in seconds of the audio segments.")
     parser.add_argument("--batch_size", type = int, default=8, help = "If not specified batch size is computed as to have a batch = the whole track")
     parser.add_argument("--pre_segmentation", type=str, default = "sliding", choices = ["sliding", "uniform"])
     parser.add_argument('-lr','--learning_rate',type=float,default=1e-5)
@@ -256,8 +258,8 @@ def main(args):
     
     tracks = [args.track1, args.track2] if args.root_folder is None else [args.root_folder] #get list of tracks from args
     #train VQ on input tracks
-    vq_ckp_path = trainVQ(args.vocab_size, args.chunk_duration, tracks, folder = args.folder)
-    args.vq_ckp_path = vq_ckp_path
+    #vq_ckp_path = trainVQ(args.vocab_size, args.chunk_duration, tracks, folder = args.folder)
+    args.vq_ckp_path = "/Users/balthazarbujard/Nextcloud/These Balthazar Bujard/learning-from-paired-tracks/runs/coupling/MoisesDB/kmeans_centers_16_0.5s.npy"#vq_ckp_path
     
     #build model
     model = build_model(args)
